@@ -16,6 +16,11 @@ type Queries struct {
 	db DB
 }
 
+// Creates a new instance of the Queries struct, initializing it with the provided database connection (DB).
+func New(db DB) *Queries {
+    return &Queries{db}
+}
+
 
 // QueryContext executes query and returns multiple rows of results
 func (q *Queries) Query (ctx context.Context, query string, arg ...any ) *sql.Rows {
