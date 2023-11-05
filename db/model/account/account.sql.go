@@ -91,7 +91,11 @@ func (q *Queries) ListAccounts (ctx context.Context, arg ListAccountsQueryParams
 
 	var accounts []Account
 
-    rows :=	q.Query(ctx, listAccountsQuery, arg.Limit, arg.Offset)
+    rows, err := q.Query(ctx, listAccountsQuery, arg.Limit, arg.Offset)
+
+	if err != nil {
+		return nil, err
+	}
 
 	defer rows.Close()
 
