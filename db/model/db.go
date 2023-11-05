@@ -8,7 +8,7 @@ import (
 
 type DB interface {
 	ExecContext(context.Context, string, ...interface{}) (sql.Result, error)
-	QueryContext(context.Context, string, ...interface{}) *sql.Rows
+	QueryContext(context.Context, string, ...interface{}) (*sql.Rows, error)
 	QueryRowContext(context.Context, string, ...interface{}) *sql.Row
 }
 
@@ -23,7 +23,7 @@ func New(db DB) *Queries {
 
 
 // QueryContext executes query and returns multiple rows of results
-func (q *Queries) Query (ctx context.Context, query string, arg ...any ) *sql.Rows {
+func (q *Queries) Query (ctx context.Context, query string, arg ...any ) (*sql.Rows, error) {
 	return q.db.QueryContext(ctx, query, arg...)
 }
 
