@@ -14,7 +14,7 @@ import (
 var TQueries *db.Queries
 
 func TestMain(m *testing.M) {
-	conf, err := helper.ReadConfig(".")
+	conf, err := helper.ReadConfig("../../../")
 
 	if err != nil {
 		log.Fatal("unable to read env config ", err)
