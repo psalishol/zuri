@@ -1,18 +1,39 @@
-package account
+package acc
 
 import (
 	"context"
-	"math/rand"
 	"database/sql"
 	"fmt"
+	"log"
+	"math/rand"
+	"os"
 	"testing"
 
-	util "github.com/psalishol/zuri/helper"
+	"github.com/psalishol/zuri/db"
+	"github.com/psalishol/zuri/util"
 	"github.com/stretchr/testify/require"
 )
 
 
-func createTestAccount (t require.TestingT) (account Account) {
+var query Queries
+
+func TestMain(m *testing.M) {
+	tDb, err := util.SetMainTest("../../../")
+
+	fmt.Printf("got here %v", tDb)
+
+	if err != nil {
+		log.Fatal("unable to set up main test", err)
+	}
+
+	query = Queries{db.New(tDb)}
+
+	fmt.Printf("got here query %v", query)
+
+	os.Exit(m.Run())
+}
+
+func createTestAccount(t require.TestingT) (account Account) {
 	arg := CreateAccountQueryParams {
 		OwnerName: util.RandomOwnerName(),
 		Balance: util.RandomMoney(),
@@ -20,9 +41,7 @@ func createTestAccount (t require.TestingT) (account Account) {
 		DisplayPicture: sql.NullString{String: util.RandomDisplayPictureURL(), Valid: true},
 	}
 
-	query := Queries{TQueries}
-
- 	account, err :=	query.CreateAccount(context.Background(), arg)
+ 	account, err := query.CreateAccount(context.Background(), arg)
 
 	require.NoError(t, err)
 	require.NotEmpty(t, account)
@@ -35,13 +54,11 @@ func createTestAccount (t require.TestingT) (account Account) {
 	return;
 }
 
-func getTestAccount (t *testing.T, id int64) (acc Account) {
+func getTestAccount(t *testing.T, id int64) (acc Account) {
 	
 	arg := GetAccountQueryParams {
 		ID: id,
 	}
-
-	query := Queries{TQueries}
 
  	acc, err := query.GetAccount(context.Background(), arg)
 
@@ -54,9 +71,7 @@ func getTestAccount (t *testing.T, id int64) (acc Account) {
 }
 
 
-func listTestAccount (t *testing.T) (acc []Account) {
-
-	query := Queries{TQueries};
+func listTestAccount(t *testing.T) (acc []Account) {
 
 	arg := ListAccountsQueryParams {
 		Limit: 10,
@@ -64,6 +79,8 @@ func listTestAccount (t *testing.T) (acc []Account) {
 	}
 
     acc, err := query.ListAccounts(context.Background(), arg)
+
+	fmt.Printf("==> Accounts: %v", acc)
 
 	require.NoError(t, err)
 
@@ -96,7 +113,6 @@ func TestUpdateAccount(t *testing.T) {
 
 	accs := listTestAccount(t);
 
-	// check the 
 	if len(accs) > 0 {
 		account := accs[rand.Intn(len(accs))]
 	
@@ -109,8 +125,6 @@ func TestUpdateAccount(t *testing.T) {
 		};
 	
 		fmt.Printf("before update %v\narg: %v\n\n", account, arg);
-	
-		query := Queries{TQueries};
 	
 		err :=	query.UpdateAccount(context.Background(), arg);
 	
@@ -130,6 +144,9 @@ func TestUpdateAccount(t *testing.T) {
 
 }
 
+
+
+//TODO: Debug delete account, --> test sometimes fails
 func TestDeleteAccount(t *testing.T) {
 
 	accs := listTestAccount(t);
@@ -140,8 +157,6 @@ func TestDeleteAccount(t *testing.T) {
 		arg := DeleteAccountQueryParam {
         	ID: account.ID,
 		}
-
-		query := Queries{TQueries};
 
 	    err := query.DeleteAccount(context.Background(), arg )
 
