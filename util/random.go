@@ -48,3 +48,15 @@ func RandomCurrency() string {
 	randomIndex := rand.Intn(len(currencies))
 	return currencies[randomIndex]
 }
+
+
+func RandomDisplayPictureURL () (URL string) {
+	randInt := RandomInt(2, 100)
+
+	if randInt % 2 == 0 {
+		// return empty URL
+		return
+	}
+	return "https://"+RandomString(8) + ".com"
+
+}

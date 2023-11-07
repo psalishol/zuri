@@ -12,7 +12,7 @@ type config struct {
 }
 
 func ReadConfig (path string) (conf config, err  error) {
-	viper.AddConfigPath(".")
+	viper.AddConfigPath(path)
 	viper.SetConfigName("app")  
 	viper.AddConfigPath("env")
 
