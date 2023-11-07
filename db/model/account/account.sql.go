@@ -1,10 +1,10 @@
-package account
+package acc
 
 import (
 	"context"
 	"database/sql"
 
-	db "github.com/psalishol/zuri/db/model"
+	"github.com/psalishol/zuri/db"
 )
 
 type Queries struct { 
@@ -15,14 +15,17 @@ type Account struct {
 	db.Account
 }
 
-type AccountQueryParams struct {
+func New(q *db.Queries) *Queries {
+	return &Queries{q}
+}
+type CreateAccountQueryParams struct {
 	OwnerName string `json:"owner_name"`
 	Balance int64 `json:"balance"`
 	DisplayPicture sql.NullString `json:"display_picture"`
 	Currency string `json:"currency"`
 }
 
-func (q *Queries) CreateAccount (ctx context.Context, arg AccountQueryParams ) (i Account, err error) {
+func (q *Queries) CreateAccount (ctx context.Context, arg CreateAccountQueryParams ) (i Account, err error) {
 	err = q.QueryRow(ctx, createAccountQuery, 
 		arg.OwnerName, 
 		arg.Balance,
@@ -73,8 +76,8 @@ func (q *Queries) GetAccount (ctx context.Context, arg GetAccountQueryParams ) (
 	&i.ID, 
 	&i.OwnerName, 
 	&i.Balance, 
-	&i.DisplayPicture, 
 	&i.Currency, 
+	&i.DisplayPicture, 
 	&i.CreatedAt,
   );
 
