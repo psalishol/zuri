@@ -1,4 +1,4 @@
-package account
+package acc
 
 const updateAccountQuery = `
 	UPDATE accounts
@@ -23,9 +23,9 @@ const createAccountQuery = `
 `
 
 const listAccountsQuery = `
-	SELECT * FROM accounts
+	SELECT id, owner_name, balance, currency, display_picture, created_at FROM accounts
 	ORDER BY id
-	WHERE id = $1 LIMIT $2 OFFSET $3
+	LIMIT $1 OFFSET $2
 `
 
 
