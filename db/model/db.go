@@ -12,13 +12,16 @@ type DB interface {
 	QueryRowContext(context.Context, string, ...interface{}) *sql.Row
 }
 
+var TQueries *Queries
+
 type Queries struct {
 	db DB
+	// tx sql.Tx
 }
 
 // Creates a new instance of the Queries struct, initializing it with the provided database connection (DB).
 func New(db DB) *Queries {
-    return &Queries{db}
+    return &Queries{db: db}
 }
 
 
