@@ -5,7 +5,7 @@ import (
 	"database/sql"
 	"fmt"
 
-	db "github.com/psalishol/zuri/db/model"
+	"github.com/psalishol/zuri/db"
 	acc "github.com/psalishol/zuri/db/model/account"
 	"github.com/psalishol/zuri/db/model/entries"
 	trf "github.com/psalishol/zuri/db/model/transfer"
@@ -57,42 +57,90 @@ type TransferTxParams struct {
 }
 
 type TransferTxResult struct {
-
+	Transfer trf.Transfer 
+	FromEntry entries.Entries
+	ToEntry entries.Entries
+	FromAccount acc.Account
+	ToAccount acc.Account
 }
 
 // Performs internal transfer from one account (from_account) to another account (to_account) 
-func (s *TxStore) TransferTx(ctx context.Context, arg TransferTxParams) (result TransferTxResult, err error) {
+func (s *TxStore) TransferTx(ctx context.Context, arg TransferTxParams) ( result TransferTxResult, err  error) {
 
-	err = s.execTx(ctx, func(q *Queries)  error {
+	err = s.execTx(ctx, func(q *Queries)  (err error) {
 
 		txArg := trf.CreateTransferParam {FromAccountID: arg.FromAccountID, ToAccountID: arg.ToAccountID, Amount: arg.Amount}
 
-		transfer, err := q.transfer.CreateTransfer(ctx,txArg)
+		result.Transfer, err = q.transfer.CreateTransfer(ctx,txArg)
 
 		if err != nil {
-			return err
+			return;
 		}
 
 		frmEntryArg := entries.CreateEntriesParams{ AccountID: arg.FromAccountID, Amount: -arg.Amount }
 
-	  	frmEntry, err := q.entries.CreateEntries(ctx, frmEntryArg)
+	  	result.FromEntry, err = q.entries.CreateEntries(ctx, frmEntryArg)
 
 		if err != nil {
-			return err;
+			return;
 		}
 
 		toEntryArg := entries.CreateEntriesParams{ AccountID: arg.ToAccountID, Amount: arg.Amount }
 
-		toEntry, err := q.entries.CreateEntries(ctx, toEntryArg)
+		result.ToEntry, err = q.entries.CreateEntries(ctx, toEntryArg)
 
 		if err != nil {
-			return err;
+			return;
 		}
 
-		// update balance;
-		
-		return nil
+		if arg.FromAccountID < arg.ToAccountID {
+
+			ac1ID, ac2ID := arg.FromAccountID, arg.ToAccountID
+
+			amount := -arg.Amount
+
+		    result.FromAccount, result.ToAccount, err =	updateTransactionAccounts(q, ctx, ac1ID,ac2ID, amount)
+
+			if err != nil {
+				return
+			}
+
+			return;
+		} else {
+	
+			ac1ID, ac2ID := arg.ToAccountID, arg.FromAccountID
+
+			amount := arg.Amount
+
+		    result.ToAccount, result.FromAccount, err =	updateTransactionAccounts(q, ctx, ac1ID,ac2ID, amount)
+
+			if err != nil {
+				return
+			}
+
+			return;
+		}
 	})
 
-	return
+	return;
+}
+
+func updateTransactionAccounts(q *Queries, ctx context.Context, acc1ID int64, acc2ID int64, amount int64) (ac1 acc.Account, ac2 acc.Account, err error) {
+
+	ac1, err = q.account.UpdateAccountBalance(ctx, acc.UpdateAccountBalanceParams{
+		AccountID: acc1ID, 
+		Amount: amount})
+
+	if err != nil {
+		return;
+	}
+
+	ac2, err = q.account.UpdateAccountBalance(ctx, acc.UpdateAccountBalanceParams{
+		AccountID: acc2ID, 
+		Amount: -amount})
+
+	if err != nil {
+		return;
+	}
+	return;
 }
